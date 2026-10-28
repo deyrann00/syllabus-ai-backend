@@ -1,0 +1,61 @@
+[project]
+name = "syllabus-ai-backend"
+version = "0.1.0"
+description = "Backend for Narxoz Syllabus AI: syllabus quality checks, approval workflow, sessions and analytics"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "email-validator>=2.2",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+    "beanie>=1.26",
+    "celery[redis]>=5.4",
+    "redis>=5.0",
+    "openai>=1.40",
+    "python-docx>=1.1",
+    "pdfplumber>=0.11",
+    "authlib>=1.3",
+    "itsdangerous>=2.2",
+    "httpx>=0.27",
+    "pyjwt>=2.9",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.9",
+    "pyyaml>=6.0",
+    "rapidfuzz>=3.9",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "testcontainers[postgres,mongodb,redis]>=4.8",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "types-pyyaml",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC"]
+ignore = ["B008", "E501"]  # line length is left to `ruff format`
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+explicit_package_bases = true
+mypy_path = "."

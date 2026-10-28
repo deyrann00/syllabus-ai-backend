@@ -1,0 +1,100 @@
+# Narxoz syllabus Quality Rubric. Imported with `python -m app.cli import-rubric rubric/2026.1.yaml`.
+# Importing never edits an existing version: change the `code` to publish a new one.
+# evaluation_type: ai | deterministic (needs `rule`) | external (needs `required_context`)
+code: "2026.1"
+title: "Narxoz Syllabus Quality Rubric 2026.1"
+principles:
+  - number: 1
+    name: Course content
+    criteria:
+      - name: Goals, outcomes, content and assessment are logically aligned
+      - name: Each section contributes to learning outcomes
+        guidance: Every week or module should be traceable to at least one learning outcome.
+      - name: Course progresses from simple to complex
+      - name: Goals and routes to achieve them are clear
+      - name: Course scope matches credit allocation
+  - number: 2
+    name: Academic justification
+    criteria:
+      - name: Course fits the educational program
+      - name: Content reflects the current discipline
+      - name: Course has a coherent academic core
+      - name: Prerequisites are academically justified
+  - number: 3
+    name: Learning objectives and outcomes
+    criteria:
+      - name: Course goal is distinct from learning outcomes
+      - name: Learning outcomes are structured
+        evaluation_type: deterministic
+        rule: outcomes_numbered
+      - name: Outcomes correspond to degree level
+      - name: Outcomes connect to educational program outcomes
+        evaluation_type: external
+        required_context: Educational Program Passport
+      - name: Learning outcomes describe observable and verifiable actions
+        guidance: >-
+          Verbs such as "understand", "know", "be familiar with" are not observable.
+          Prefer compare, implement, evaluate, justify, design, analyse.
+      - name: Outcome statements specify expected student performance
+  - number: 4
+    name: Logic of content structure
+    criteria:
+      - name: Course content is structured into modules
+      - name: Topics progress logically
+      - name: Content covers all learning outcomes
+        guidance: Each learning outcome must be taught somewhere in the weekly plan.
+      - name: Key disciplinary discussions are included
+      - name: Weekly workload is consistent
+  - number: 5
+    name: Teaching methods
+    criteria:
+      - name: Methods align with learning outcomes
+      - name: Methods match intended competencies
+      - name: More than one teaching format is used
+      - name: Active student participation is included
+      - name: Independent learning is supported
+  - number: 6
+    name: Assessment system
+    criteria:
+      - name: Every learning outcome is assessed
+        guidance: Each LO must be mapped to at least one assessment task.
+      - name: Assessment form matches the outcome
+      - name: Assessment tasks are described
+      - name: Grading rules and criteria are clear
+        guidance: Rubrics need performance level descriptors, not only a list of deliverables.
+      - name: Workload is distributed across semester
+      - name: Multiple assessment types are used
+      - name: Formative feedback is provided
+      - name: Assessment weights total 100%
+        evaluation_type: deterministic
+        rule: weights_total_100
+  - number: 7
+    name: Resources
+    criteria:
+      - name: Literature is current
+      - name: Core literature exists in Narxoz library
+        evaluation_type: external
+        required_context: Narxoz library catalogue
+      - name: Resources are used in learning activities
+      - name: Resources are accessible to students
+      - name: Materials support learning outcomes
+      - name: References are complete and consistent
+  - number: 8
+    name: Accessibility and clarity
+    criteria:
+      - name: Syllabus uses clear academic language
+      - name: Information is well structured
+        evaluation_type: deterministic
+        rule: required_sections_present
+      - name: Active student role is visible
+      - name: Rules are transparent
+      - name: Accessibility needs are addressed
+  - number: 9
+    name: Course policy
+    criteria:
+      - name: Academic integrity rules are present
+      - name: Responsibility and respect are included
+        guidance: Group work must state individual responsibility, not only respectful communication.
+      - name: Attendance policy is stated
+      - name: Assessment and feedback rules are ethical
+      - name: Appeal and error correction mechanisms exist

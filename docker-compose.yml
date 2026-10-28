@@ -1,0 +1,80 @@
+# Local stack. vLLM runs separately (GPU server); point LLM_BASE_URL at it in .env.
+# Secrets come from .env (copy .env.example); nothing secret is committed here.
+x-app: &app
+  build: .
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql+asyncpg://syllabus:syllabus@postgres:5432/syllabus
+    MONGO_URL: mongodb://mongo:27017
+    REDIS_URL: redis://redis:6379/0
+    FILES_ROOT: /data/files
+    TMP_ROOT: /data/tmp
+  volumes:
+    - files:/data
+  depends_on:
+    postgres: { condition: service_healthy }
+    mongo: { condition: service_healthy }
+    redis: { condition: service_healthy }
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: syllabus
+      POSTGRES_PASSWORD: syllabus
+      POSTGRES_DB: syllabus
+    ports: ["5432:5432"]
+    volumes: [pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U syllabus"]
+      interval: 3s
+      retries: 20
+
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes: [mongo:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
+
+  migrate:
+    <<: *app
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+
+  api:
+    <<: *app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+    ports: ["8080:8080"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  worker:
+    <<: *app
+    # Keep -c for the ai queue in line with LLM_MAX_CONCURRENCY and what the vLLM server can take.
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "-Q", "ai,default", "-c", "2", "--loglevel", "info"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  beat:
+    <<: *app
+    command: ["celery", "-A", "app.workers.celery_app", "beat", "--loglevel", "info", "-s", "/data/celerybeat-schedule"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+volumes:
+  pg:
+  mongo:
+  files:
