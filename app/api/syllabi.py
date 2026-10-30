@@ -134,9 +134,11 @@ async def list_versions(syllabus_id: uuid.UUID, principal: CurrentUser, session:
 @router.get("/versions/{version_id}/file")
 async def download_version(version_id: uuid.UUID, principal: CurrentUser, session: DbSession):
     version = await _visible_version(session, principal, version_id)
-    return FileResponse(
-        files.absolute(version.file_path), media_type=version.content_type, filename=version.filename
-    )
+    try:
+        path = await files.ensure_local(version)
+    except FileNotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "The file of this version is missing") from exc
+    return FileResponse(path, media_type=version.content_type, filename=version.filename)
 
 
 @router.get("/versions/{version_id}/runs", response_model=list[RunOut])

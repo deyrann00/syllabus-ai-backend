@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 import sqlalchemy as sa
@@ -5,7 +6,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.deps import CurrentUser, DbSession
 from app.enums import AiStatus
-from app.models import Course, Program, RubricVersion, School, Syllabus, UploadFolder, User
+from app.models import Course, Program, RubricVersion, School, Syllabus, SyllabusVersion, UploadFolder, User
 from app.models.org import course_instructors
 from app.schemas.catalog import (
     CourseOut,
@@ -18,6 +19,7 @@ from app.schemas.catalog import (
     SchoolOut,
 )
 from app.services.sessions import ensure_can_manage
+from app.storage import drive
 
 router = APIRouter(tags=["catalog"])
 
@@ -86,14 +88,28 @@ async def _folder_out(session: DbSession, folder: UploadFolder) -> FolderOut:
             ).where(Syllabus.folder_id == folder.id)
         )
     ).one()
+    last_synced_at = await session.scalar(
+        sa.select(sa.func.max(SyllabusVersion.drive_synced_at)).where(SyllabusVersion.folder_id == folder.id)
+    )
     return FolderOut(
         id=folder.id,
         school_id=folder.school_id,
         path=folder.path,
         semester=folder.semester,
+        drive_folder_id=folder.drive_folder_id,
+        last_synced_at=last_synced_at,
         files=files,
         checked=checked,
     )
+
+
+async def _checked_drive_folder(drive_folder_id: str | None) -> str | None:
+    cleaned = (drive_folder_id or "").strip()
+    if not cleaned:
+        return None
+    if not await asyncio.to_thread(drive.get_drive().folder_accessible, cleaned):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "This Drive folder is not accessible")
+    return cleaned
 
 
 @router.get("/schools/{school_id}/folders", response_model=list[FolderOut])
@@ -111,7 +127,12 @@ async def create_folder(school_id: uuid.UUID, body: FolderIn, principal: Current
     ensure_can_manage(principal, school_id)
     if await session.get(School, school_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "School not found")
-    folder = UploadFolder(school_id=school_id, path=body.path.strip(), semester=body.semester)
+    folder = UploadFolder(
+        school_id=school_id,
+        path=body.path.strip(),
+        semester=body.semester,
+        drive_folder_id=await _checked_drive_folder(body.drive_folder_id),
+    )
     session.add(folder)
     try:
         await session.commit()
@@ -126,7 +147,10 @@ async def update_folder(folder_id: uuid.UUID, body: FolderPatch, principal: Curr
     if folder is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Folder not found")
     ensure_can_manage(principal, folder.school_id)
-    for key, value in body.model_dump(exclude_none=True).items():
+    # Sending null for drive_folder_id disconnects the folder; other fields ignore null.
+    if "drive_folder_id" in body.model_fields_set:
+        folder.drive_folder_id = await _checked_drive_folder(body.drive_folder_id)
+    for key, value in body.model_dump(exclude_none=True, exclude={"drive_folder_id"}).items():
         setattr(folder, key, value.strip() if isinstance(value, str) else value)
     try:
         await session.commit()

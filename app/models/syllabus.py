@@ -47,6 +47,10 @@ class SyllabusVersion(UUIDPk, CreatedAt, Base):
     issue_count: Mapped[int | None]
     source: Mapped[VersionSource] = mapped_column(str_enum(VersionSource))
     folder_id: Mapped[uuid.UUID | None] = mapped_column(sa.ForeignKey("upload_folders.id"))
+    drive_file_id: Mapped[str | None] = mapped_column(sa.String(500))
+    drive_synced_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    drive_error: Mapped[str | None] = mapped_column(sa.String(500))
+    drive_attempts: Mapped[int] = mapped_column(default=0, server_default="0")
 
 
 class AssessmentRun(UUIDPk, CreatedAt, Base):

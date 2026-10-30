@@ -61,6 +61,7 @@ class VersionOut(Schema):
     created_by_name: str | None = None
     issue_count: int | None
     source: VersionSource
+    drive_synced_at: datetime | None
 
 
 class RunOut(Schema):

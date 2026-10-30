@@ -70,7 +70,7 @@ async def load_content(version: SyllabusVersion) -> ExtractedContent:
     cached = await ExtractedDocument.find_one(ExtractedDocument.version_id == version.id)
     if cached:
         return cached.content
-    content = await asyncio.to_thread(extract, files.absolute(version.file_path))
+    content = await asyncio.to_thread(extract, await files.ensure_local(version))
     await ExtractedDocument(version_id=version.id, content=content).insert()
     return content
 

@@ -107,7 +107,7 @@ async def apply(
 
     edits = [Edit(i.current, i.proposed) for i in accepted]
     if Path(version.filename).suffix.lower() == ".docx":
-        result = apply_docx(files.absolute(version.file_path), edits)
+        result = apply_docx(await files.ensure_local(version), edits)
     else:
         result = apply_content(await checks.load_content(version), edits)
     stem = Path(version.filename).stem.removesuffix(f"_v{version.version}")

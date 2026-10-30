@@ -30,3 +30,10 @@ def send_pending_emails() -> None:
     from app.services.notifications import send_pending_emails as send
 
     runtime.run(send)
+
+
+@celery_app.task(name="syllabus.sync_drive_files")
+def sync_drive_files() -> None:
+    from app.services.drive_sync import sync_pending_files
+
+    runtime.run(sync_pending_files)

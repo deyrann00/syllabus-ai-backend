@@ -71,7 +71,7 @@ class Course(UUIDPk, Base):
 
 
 class UploadFolder(UUIDPk, CreatedAt, Base):
-    """Logical folder a School uploads into; replaces the prototype's Google Drive folder."""
+    """Folder a School uploads into. `drive_folder_id` is where its files land in Google Drive."""
 
     __tablename__ = "upload_folders"
     __table_args__ = (sa.UniqueConstraint("school_id", "path"),)
@@ -79,3 +79,4 @@ class UploadFolder(UUIDPk, CreatedAt, Base):
     school_id: Mapped[uuid.UUID] = mapped_column(sa.ForeignKey("schools.id"), index=True)
     path: Mapped[str] = mapped_column(sa.String(300))
     semester: Mapped[str] = mapped_column(sa.String(40))
+    drive_folder_id: Mapped[str | None] = mapped_column(sa.String(128))

@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     tmp_root: Path = Path("./var/tmp")
     max_upload_mb: int = 20
 
+    # stub: no Google account yet, files go to drive_stub_root. google: see app/storage/drive.py.
+    drive_provider: Literal["stub", "google"] = "stub"
+    drive_stub_root: Path = Path("./var/drive")
+    # Used for versions whose folder has no drive_folder_id.
+    drive_default_folder_id: str = ""
+
     # stub: no auth service yet, the bearer token is `stub:<email>`. http: see app/auth/client.py.
     auth_provider: Literal["stub", "http"] = "stub"
     auth_service_url: str = ""
@@ -55,9 +61,11 @@ class Settings(BaseSettings):
     email_from: str = "syllabus-ai@narxoz.kz"
 
     @model_validator(mode="after")
-    def _real_auth_in_prod(self) -> "Settings":
+    def _no_stubs_in_prod(self) -> "Settings":
         if self.env == "prod" and self.auth_provider == "stub":
             raise ValueError("AUTH_PROVIDER=stub accepts anyone, it cannot run in prod")
+        if self.env == "prod" and self.drive_provider == "stub":
+            raise ValueError("DRIVE_PROVIDER=stub keeps files out of Google Drive, it cannot run in prod")
         if self.auth_provider == "http" and not self.auth_service_url:
             raise ValueError("AUTH_PROVIDER=http needs AUTH_SERVICE_URL")
         return self

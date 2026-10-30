@@ -9,6 +9,7 @@ x-app: &app
     REDIS_URL: redis://redis:6379/0
     FILES_ROOT: /data/files
     TMP_ROOT: /data/tmp
+    DRIVE_STUB_ROOT: /data/drive
   volumes:
     - files:/data
   depends_on:

@@ -16,6 +16,7 @@ celery_app.conf.update(
     beat_schedule={
         "start-due-sessions": {"task": "syllabus.start_due_sessions", "schedule": 60.0},
         "send-pending-emails": {"task": "syllabus.send_pending_emails", "schedule": 60.0},
+        "sync-drive-files": {"task": "syllabus.sync_drive_files", "schedule": 60.0},
     },
     timezone="UTC",
 )

@@ -119,7 +119,9 @@ async def _reference_data(session: AsyncSession) -> dict[str, dict]:
     }
     session.add_all(courses.values())
     folders = {
-        school: UploadFolder(school_id=schools[school].id, path=path, semester=SEMESTER)
+        school: UploadFolder(
+            school_id=schools[school].id, path=path, semester=SEMESTER, drive_folder_id=f"demo-{school}"
+        )
         for school, path in FOLDERS
     }
     session.add_all(folders.values())

@@ -35,6 +35,8 @@ def containers(tmp_path_factory):
             EMAIL_BACKEND="console",
             FILES_ROOT=str(tmp_path_factory.mktemp("files")),
             TMP_ROOT=str(tmp_path_factory.mktemp("tmp")),
+            DRIVE_PROVIDER="stub",
+            DRIVE_STUB_ROOT=str(tmp_path_factory.mktemp("drive")),
         )
         from app.config import get_settings
 

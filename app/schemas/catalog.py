@@ -78,11 +78,13 @@ class RubricOut(Schema):
 class FolderIn(Schema):
     path: str
     semester: str
+    drive_folder_id: str | None = None
 
 
 class FolderPatch(Schema):
     path: str | None = None
     semester: str | None = None
+    drive_folder_id: str | None = None
 
 
 class FolderOut(Schema):
@@ -90,5 +92,7 @@ class FolderOut(Schema):
     school_id: uuid.UUID
     path: str
     semester: str
+    drive_folder_id: str | None
+    last_synced_at: datetime | None
     files: int
     checked: int

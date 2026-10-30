@@ -7,7 +7,8 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.extraction import SUPPORTED_TYPES
-from app.auth.rbac import Principal, syllabus_filter
+from app.auth.client import get_auth_client
+from app.auth.rbac import Principal, forbidden, syllabus_filter
 from app.config import get_settings
 from app.enums import AiStatus, ApprovalStage, VersionSource
 from app.models import ApprovalEvent, Course, Program, School, Syllabus, SyllabusVersion, UploadFolder, User
@@ -97,6 +98,9 @@ async def add_version(
 ) -> SyllabusVersion:
     """Store a new immutable version. The syllabus re-enters the workflow at Draft until its check completes."""
     content_type = validate_upload(filename, data)
+    email = await session.scalar(sa.select(User.email).where(User.id == user_id))
+    if not email or not await get_auth_client().verify_account(email):
+        raise forbidden("This account may not store files in Google Drive")
     number = syllabus.current_version + 1
     stored = files.save_version_file(syllabus.id, number, filename, data)
     version = SyllabusVersion(
