@@ -26,15 +26,11 @@ class Settings(BaseSettings):
     tmp_root: Path = Path("./var/tmp")
     max_upload_mb: int = 20
 
-    jwt_secret: str = "change-me"
-    jwt_ttl_minutes: int = 60 * 12
-    session_secret: str = "change-me-too"
-    cookie_name: str = "syllabus_token"
-    cookie_secure: bool = False
-    google_client_id: str = ""
-    google_client_secret: str = ""
-    google_allowed_domain: str = ""
-    dev_login_enabled: bool = True
+    # stub: no auth service yet, the bearer token is `stub:<email>`. http: see app/auth/client.py.
+    auth_provider: Literal["stub", "http"] = "stub"
+    auth_service_url: str = ""
+    auth_service_verify_path: str = "/verify"
+    auth_service_timeout_s: float = 5
 
     llm_provider: Literal["vllm", "fake"] = "fake"
     llm_base_url: str = "http://localhost:8000/v1"
@@ -59,13 +55,11 @@ class Settings(BaseSettings):
     email_from: str = "syllabus-ai@narxoz.kz"
 
     @model_validator(mode="after")
-    def _no_placeholder_secrets_in_prod(self) -> "Settings":
-        if self.env == "prod":
-            weak = [n for n in ("jwt_secret", "session_secret") if getattr(self, n).startswith("change-me")]
-            if weak or len(self.jwt_secret) < 32:
-                raise ValueError(
-                    f"set strong values for {', '.join(weak) or 'jwt_secret (>= 32 chars)'} in prod"
-                )
+    def _real_auth_in_prod(self) -> "Settings":
+        if self.env == "prod" and self.auth_provider == "stub":
+            raise ValueError("AUTH_PROVIDER=stub accepts anyone, it cannot run in prod")
+        if self.auth_provider == "http" and not self.auth_service_url:
+            raise ValueError("AUTH_PROVIDER=http needs AUTH_SERVICE_URL")
         return self
 
 

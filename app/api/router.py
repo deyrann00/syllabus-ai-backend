@@ -3,9 +3,9 @@ from fastapi import APIRouter
 from app.api import (
     analytics,
     approval,
-    auth,
     catalog,
     improve,
+    me,
     notifications,
     precheck,
     sessions,
@@ -15,7 +15,7 @@ from app.api import (
 
 api_router = APIRouter()
 for module in (
-    auth,
+    me,
     catalog,
     syllabi,
     approval,

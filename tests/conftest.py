@@ -25,7 +25,7 @@ def containers(tmp_path_factory):
     ):
         os.environ.update(
             ENV="test",
-            JWT_SECRET="test-secret-that-is-at-least-32-bytes-long",
+            AUTH_PROVIDER="stub",
             DATABASE_URL=pg.get_connection_url(),
             MONGO_URL=mongo.get_connection_url(),
             MONGO_DB="syllabus_test",
@@ -82,19 +82,17 @@ async def ref(stack) -> dict:
 
 @pytest.fixture
 async def client_for(stack) -> AsyncIterator[Callable[[object], httpx.AsyncClient]]:
-    """client_for(user) → an HTTP client authenticated as that user (bearer token)."""
-    from app.auth import jwt
+    """client_for(user) → an HTTP client authenticated as that user (stub bearer token)."""
     from app.main import create_app
 
     app = create_app(use_lifespan=False)
     clients: list[httpx.AsyncClient] = []
 
     def make(user) -> httpx.AsyncClient:
-        token = jwt.issue(user.id)
         client = httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app),
             base_url="http://test/api/v1",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer stub:{user.email}"},
         )
         clients.append(client)
         return client

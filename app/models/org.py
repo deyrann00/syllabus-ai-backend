@@ -20,7 +20,7 @@ class User(UUIDPk, CreatedAt, Base):
     email: Mapped[str] = mapped_column(sa.String(254), unique=True)
     name: Mapped[str] = mapped_column(sa.String(200))
     title: Mapped[str | None] = mapped_column(sa.String(120))
-    google_sub: Mapped[str | None] = mapped_column(sa.String(64), unique=True)
+    external_id: Mapped[str | None] = mapped_column(sa.String(255), unique=True)
     is_active: Mapped[bool] = mapped_column(default=True)
 
     roles: Mapped[list["RoleAssignment"]] = relationship(back_populates="user", lazy="selectin")
