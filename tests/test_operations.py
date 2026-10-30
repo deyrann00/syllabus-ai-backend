@@ -235,6 +235,16 @@ async def test_auth(ref, anon, client_for):
     assert integrations == {"auth": "stub", "drive": "stub", "email": "console", "llm": "fake"}
 
 
+async def test_catalog(ref, client_for):
+    client = client_for(ref["users"]["kok"])
+    programs = (await client.get("/programs")).json()
+    assert ref["programs"]["cs"].slug in [p["slug"] for p in programs]
+    assert {p["has_passport"] for p in programs} <= {True, False}
+    school = ref["schools"]["digital"].id
+    scoped = (await client.get("/programs", params={"school_id": str(school)})).json()
+    assert scoped and all(p["school_id"] == str(school) for p in scoped)
+
+
 def _principal(user):
     from app.auth.rbac import Principal
 

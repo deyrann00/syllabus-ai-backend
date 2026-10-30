@@ -45,7 +45,14 @@ async def programs(_: CurrentUser, session: DbSession, school_id: uuid.UUID | No
     if school_id:
         query = query.where(Program.school_id == school_id)
     return [
-        ProgramOut.model_validate(p).model_copy(update={"has_passport": bool(p.passport_text)})
+        ProgramOut(
+            id=p.id,
+            slug=p.slug,
+            name=p.name,
+            school_id=p.school_id,
+            degree_level=p.degree_level,
+            has_passport=bool(p.passport_text),
+        )
         for p in await session.scalars(query)
     ]
 
