@@ -1,9 +1,10 @@
 import uuid
 
+import sqlalchemy as sa
 from fastapi import APIRouter, Query, status
 
 from app.deps import CurrentUser, DbSession
-from app.models import CheckSession
+from app.models import CheckSession, User
 from app.schemas.work import SessionCreate, SessionItemOut, SessionOut
 from app.services import sessions
 from app.workers import dispatch
@@ -16,6 +17,7 @@ async def _out(session: DbSession, cs: CheckSession) -> SessionOut:
     return SessionOut.model_validate(
         {
             **{c.key: getattr(cs, c.key) for c in CheckSession.__table__.columns},
+            "created_by_name": await session.scalar(sa.select(User.name).where(User.id == cs.created_by)),
             "progress": await sessions.progress(session, cs.id),
         }
     )

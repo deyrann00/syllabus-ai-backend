@@ -4,6 +4,7 @@ import uuid
 import sqlalchemy as sa
 from fastapi import APIRouter, HTTPException, status
 
+from app.config import get_settings
 from app.deps import CurrentUser, DbSession
 from app.enums import AiStatus
 from app.models import Course, Program, RubricVersion, School, Syllabus, SyllabusVersion, UploadFolder, User
@@ -13,6 +14,7 @@ from app.schemas.catalog import (
     FolderIn,
     FolderOut,
     FolderPatch,
+    IntegrationsOut,
     ProfessorOut,
     ProgramOut,
     RubricOut,
@@ -22,6 +24,14 @@ from app.services.sessions import ensure_can_manage
 from app.storage import drive
 
 router = APIRouter(tags=["catalog"])
+
+
+@router.get("/integrations", response_model=IntegrationsOut)
+async def integrations(_: CurrentUser):
+    s = get_settings()
+    return IntegrationsOut(
+        auth=s.auth_provider, drive=s.drive_provider, email=s.email_backend, llm=s.llm_provider
+    )
 
 
 @router.get("/schools", response_model=list[SchoolOut])

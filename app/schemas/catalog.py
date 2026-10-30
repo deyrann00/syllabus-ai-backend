@@ -52,6 +52,13 @@ class MeOut(Schema):
     taught_course_ids: list[uuid.UUID]
 
 
+class IntegrationsOut(Schema):
+    auth: str
+    drive: str
+    email: str
+    llm: str
+
+
 class CriterionOut(Schema):
     id: uuid.UUID
     code: str

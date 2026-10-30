@@ -231,6 +231,8 @@ async def test_auth(ref, anon, client_for):
     assert len(me["led_course_ids"]) == 1 and len(me["taught_course_ids"]) == 2
     rubric = (await client_for(ref["users"]["kok"]).get("/rubric")).json()
     assert rubric["code"] == "2026.1" and sum(len(p["criteria"]) for p in rubric["principles"]) == 49
+    integrations = (await client_for(ref["users"]["kok"]).get("/integrations")).json()
+    assert integrations == {"auth": "stub", "drive": "stub", "email": "console", "llm": "fake"}
 
 
 def _principal(user):
