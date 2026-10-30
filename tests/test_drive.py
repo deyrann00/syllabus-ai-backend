@@ -67,9 +67,22 @@ async def test_failed_copy_keeps_the_upload_and_retries(ref, client_for, monkeyp
     assert stored.drive_file_id and stored.drive_error is None and stored.drive_attempts == 2
 
 
-async def test_version_without_a_folder_waits(ref, client_for):
+async def test_upload_without_a_folder_uses_the_school_folder(ref, client_for):
     lead = client_for(ref["users"]["shalkar"])
     syllabus = await create_syllabus(lead, ref["courses"]["ai"].id)
+    uploaded = await upload(
+        lead, syllabus["id"], sample_syllabus("Artificial Intelligence", with_issues=False)
+    )
+
+    await sync_pending_files()
+    stored = await _stored(uploaded["version"]["id"])
+    assert stored.folder_id == ref["folders"]["digital"].id
+    assert stored.drive_file_id.startswith(f"{ref['folders']['digital'].drive_folder_id}/")
+
+
+async def test_version_without_a_folder_waits(ref, client_for):
+    lead = client_for(ref["users"]["shalkar"])
+    syllabus = await create_syllabus(lead, ref["courses"]["ai"].id, semester="Spring 2030")
     uploaded = await upload(
         lead, syllabus["id"], sample_syllabus("Artificial Intelligence", with_issues=False)
     )

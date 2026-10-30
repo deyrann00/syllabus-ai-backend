@@ -86,6 +86,18 @@ def validate_upload(filename: str, data: bytes) -> str:
     return SUPPORTED_TYPES[suffix]
 
 
+async def _school_folder(session: AsyncSession, syllabus: Syllabus) -> uuid.UUID | None:
+    """Professors upload without choosing a folder: the file goes to their School's folder for the semester."""
+    return await session.scalar(
+        sa.select(UploadFolder.id)
+        .join(Program, Program.school_id == UploadFolder.school_id)
+        .join(Course, Course.program_id == Program.id)
+        .where(Course.id == syllabus.course_id, UploadFolder.semester == syllabus.semester)
+        .order_by(UploadFolder.drive_folder_id.is_(None), UploadFolder.path)
+        .limit(1)
+    )
+
+
 async def add_version(
     session: AsyncSession,
     syllabus: Syllabus,
@@ -97,6 +109,7 @@ async def add_version(
     folder_id: uuid.UUID | None = None,
 ) -> SyllabusVersion:
     """Store a new immutable version. The syllabus re-enters the workflow at Draft until its check completes."""
+    folder_id = folder_id or syllabus.folder_id or await _school_folder(session, syllabus)
     content_type = validate_upload(filename, data)
     email = await session.scalar(sa.select(User.email).where(User.id == user_id))
     if not email or not await get_auth_client().verify_account(email):
@@ -113,7 +126,7 @@ async def add_version(
         sha256=stored.sha256,
         created_by=user_id,
         source=source,
-        folder_id=folder_id or syllabus.folder_id,
+        folder_id=folder_id,
     )
     session.add(version)
     previous_stage = syllabus.approval_stage
